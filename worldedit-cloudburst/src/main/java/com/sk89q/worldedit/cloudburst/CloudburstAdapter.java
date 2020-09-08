@@ -39,6 +39,7 @@ import com.sk89q.worldedit.world.item.ItemType;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.biome.Biome;
@@ -47,7 +48,8 @@ import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -91,13 +93,30 @@ public class CloudburstAdapter {
     }
 
     private static final Int2ObjectMap<BlockState> blockStateCache = new Int2ObjectOpenHashMap<>();
-    private static final Map<String, BlockState> blockStateStringCache = new HashMap<>();
+    private static final Map<org.cloudburstmc.server.block.BlockState, BlockState> blockStateStringCache = new IdentityHashMap<>();
 
     public static BlockState adapt(org.cloudburstmc.server.block.BlockState blockState) {
         System.out.println("ADAPT! " + blockState.toString());
-        return blockStateStringCache.computeIfAbsent(blockState.toString(), input -> {
+        return blockStateStringCache.computeIfAbsent(blockState, input -> {
+            NbtMap serialized = BlockPalette.INSTANCE.getSerialized(blockState);
+
+            StringBuilder builder = new StringBuilder();
+            builder.append(serialized.getString("name"));
+            NbtMap states = serialized.getCompound("states");
+            if (states != null && !states.isEmpty()) {
+                builder.append('{');
+                states.forEach((trait, value) -> builder.append(trait)
+                        .append('=')
+                        .append(value.toString().toLowerCase(Locale.ROOT))
+                        .append(',')
+                        .append(' ')
+                );
+                builder.setLength(builder.length() - 1);
+                builder.setCharAt(builder.length() - 1, '}');
+            }
+
             try {
-                return WorldEdit.getInstance().getBlockFactory().parseFromInput(input, TO_BLOCK_CONTEXT).toImmutableState();
+                return WorldEdit.getInstance().getBlockFactory().parseFromInput(builder.toString(), TO_BLOCK_CONTEXT).toImmutableState();
             } catch (InputParseException e) {
                 e.printStackTrace();
                 return null;
