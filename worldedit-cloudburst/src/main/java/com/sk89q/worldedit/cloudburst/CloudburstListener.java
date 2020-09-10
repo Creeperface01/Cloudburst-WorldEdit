@@ -43,7 +43,6 @@ public class CloudburstListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        System.out.println(plugin.getPlatform().isHookingEvents());
         if (!plugin.getPlatform().isHookingEvents()) {
             return;
         }

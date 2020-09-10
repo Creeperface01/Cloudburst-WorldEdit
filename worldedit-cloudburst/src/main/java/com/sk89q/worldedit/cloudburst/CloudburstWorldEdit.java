@@ -22,17 +22,11 @@ package com.sk89q.worldedit.cloudburst;
 import com.sk89q.util.yaml.YAMLProcessor;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.event.platform.PlatformReadyEvent;
-import com.sk89q.worldedit.extension.input.InputParseException;
-import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.internal.anvil.ChunkDeleter;
-import com.sk89q.worldedit.registry.state.Property;
-import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockType;
-import com.sk89q.worldedit.world.block.FuzzyBlockState;
 import com.sk89q.worldedit.world.item.ItemType;
 import org.cloudburstmc.server.command.CommandSender;
-import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.plugin.PluginBase;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -42,15 +36,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
-import java.util.Map;
-import java.util.logging.Level;
 
 import static com.sk89q.worldedit.internal.anvil.ChunkDeleter.DELCHUNKS_FILE_NAME;
 
@@ -85,9 +75,14 @@ public class CloudburstWorldEdit extends PluginBase {
         }
 
         for (org.cloudburstmc.server.block.BlockState blockState : BlockRegistry.get().getBlockStates()) {
-            String identifier = blockState.getType().toString().toLowerCase(Locale.ROOT);
+            String identifier = CloudUtils.adapt(blockState);
+            CloudUtils.typeMapping.put(identifier, blockState);
             if (BlockType.REGISTRY.get(identifier) == null) {
                 BlockType.REGISTRY.register(identifier, new BlockType(identifier));
+            }
+
+            if (ItemType.REGISTRY.get(identifier) == null) {
+                ItemType.REGISTRY.register(identifier, new ItemType(identifier));
             }
         }
 

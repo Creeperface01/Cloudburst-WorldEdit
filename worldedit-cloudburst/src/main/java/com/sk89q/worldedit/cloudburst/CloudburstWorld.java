@@ -111,10 +111,7 @@ public class CloudburstWorld extends AbstractWorld {
 
         Vector3i pos = Vector3i.from(position.getBlockX(), position.getBlockY(), position.getBlockZ());
         BlockState blockState = getBlockState(block);
-        System.out.println("SET BLOCK IS BEING CALLED! WOEHOE " + pos + " - " + blockState.getType());
-        System.out.println("OLD BLOCK " + world.getBlock(pos).getState().getType());
         world.getBlock(pos).set(blockState);
-        System.out.println("NEW BLOCK " + world.getBlock(pos).getState().getType());
         return false;
     }
 
